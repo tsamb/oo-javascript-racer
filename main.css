@@ -1,0 +1,14 @@
+.racer-table td {
+  background-color: white;
+  /*border: 1px solid black;*/
+  height: 20px;
+  width: 20px;
+}
+
+.racer-table td.active {
+  background-color: black;
+}
+
+.key-chooser {
+  display: none
+}
