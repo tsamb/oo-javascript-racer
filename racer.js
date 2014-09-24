@@ -1,11 +1,11 @@
 $(document).ready(function(){
-  Game.start(BlockingDataCollection.getPlayerNamesAndKeys())
-  // Game.start([[]])
+  var options = {players: BlockingDataCollection.getPlayerNamesAndKeys()}
+  Game.start(options);
 });
 
 function Game(options) {
   // invariants
-  this.players = getGameInfo(); // disentangle by modularizing as per driver code above /
+  // this.players = getGameInfo(); // disentangle by modularizing as per driver code above /
   this.container = $(".racer-table");
   this.trackLength = options.trackLength || 20;
 
@@ -17,10 +17,10 @@ function Game(options) {
   // this.handleKeyUp();
 }
 
-Game.start(options) {
-  var g = new Game(options)
-  g.drawBoard()
-  g.handleKeyUp()
+Game.start = function(options) {
+  var g = new Game(options);
+  g.drawBoard();
+  g.handleKeyUp();
 }
 
 Game.prototype.drawBoard = function() {
@@ -103,26 +103,49 @@ function createPlayers(num) {
   return players;
 };
 
-var playerNamesAndKeys = BlockingDataCollection.getPlayerNamesAndKeys()
+// var playerNamesAndKeys = BlockingDataCollection.getPlayerNamesAndKeys()
 
 // playerNamesAndKeys
-[[ 'myles', 'm' ], ['sam', 's' ] ]
+// [[ 'myles', 'm' ], ['sam', 's' ] ]
 
+
+// ---
+
+var CreateElement = {}
+
+CreateElement.createOuter
 
 // ---
 
 var BlockingDataCollection = {}
 
-BlockingDataCollection.nameForNumericallyIndexedPlayer = function(num) {
+BlockingDataCollection.nameForPlayer = function(num) {
   return prompt("Player " + num + ", what is your name?");
+}
+
+BlockingDataCollection.keyToKeyCode = function(key) {
+  return key.charCodeAt(0) - 32
+}
+
+BlockingDataCollection.keyForPlayer = function(name) {
+  return prompt(name + ", what key do you want to use?");
+}
+
+BlockingDataCollection.keyCodeForPlayer = function(name) {
+  var playerKey = this.keyForPlayer(name);
+  return this.keyToKeyCode(playerKey);
 }
 
 BlockingDataCollection.getPlayerNamesAndKeys = function() {
   var players = [];
   var count = parseInt(this.playerCount());
   for (i = 1; i <= count; i++) {
-    players.push(this.nameForNumericallyIndexedPlayer(i));
+    var player = [];
+    player.push(this.nameForPlayer(i));
+    player.push(this.keyCodeForPlayer(player[0]));
+    players.push(player);
   }
+  console.log(players);
   return players;
 }
 
