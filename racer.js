@@ -1,11 +1,14 @@
 $(document).ready(function(){
-  var options = {players: BlockingDataCollection.getPlayerNamesAndKeys()}
+  // var options = {players: BlockingDataCollection.getPlayerNamesAndKeys()}
+  // options stub:
+  var options = {players: [["Sam", 83],["Paul", 80]]}
   Game.start(options);
 });
 
 function Game(options) {
   // invariants
   // this.players = getGameInfo(); // disentangle by modularizing as per driver code above /
+  this.players = this.buildPlayers(options.players) // player construction method here somewhere... how do we add a default here?
   this.container = $(".racer-table");
   this.trackLength = options.trackLength || 20;
 
@@ -23,24 +26,36 @@ Game.start = function(options) {
   g.handleKeyUp();
 }
 
+Game.prototype.buildPlayers = function(rawPlayers) {
+  players = [];
+  rawPlayers.forEach(function(playerData) {
+    players.push(new Player({ name: playerData[0], key: playerData[1] }));
+  });
+  console.log(players);
+  return players;
+}
+
 Game.prototype.drawBoard = function() {
   var game = this;
   // $.each(this.players, function(index, player) {
   this.players.forEach(function(player, index) {
-    game.container.append("<tr id='" + player.name + "-track'></tr>"); // disentangle this into createElement namespace
-    var remainingTrackPiecesToDraw = this.trackLength;
+    game.container.append(CreateElement.playerTrack(player.name)); // disentangle this into createElement namespace
 
-    var rowsHTML = ''
-    while (remainingTrackPiecesToDraw--) rowsHTML += "<td></td>"
-    range(0,this.trackLength).reduce
+    // var remainingTrackPiecesToDraw = this.trackLength;
+
+    // var rowsHTML = ''
+    // while (remainingTrackPiecesToDraw--) rowsHTML += "<td></td>"
+
+    var trackPieces = CreateElement.trackPieces(this.trackLength)
 
     player.$track = $("#" + player.name + "-track");
-    for (i = 0; i < game.trackLength; i++) {
-      player.$track.append("<td></td>");
-    }
-    this.activateFirstCellForPlayer()
+    player.$track.append(trackPieces);
+    // for (i = 0; i < game.trackLength; i++) {
+    //   player.$track.append("<td></td>");
+    // }
+    player.activateFirstTrackPiece();
     // player.$track.children().first().addClass("active");
-    player.$track.find('.cell:first-child').addClass("active"); // game logic shouldn't know/care about the exact structure of the DOM
+    // player.$track.find('.cell:first-child').addClass("active"); // game logic shouldn't know/care about the exact structure of the DOM
   });
 }
 
@@ -74,10 +89,9 @@ Game.prototype.finishEvent = function(winningPlayer) {
   // TODO: send winning player info to view
 }
 
-function Player(num, name, key) {
-  this.name = name;
-  this.num = num;
-  this.key = key;
+function Player(options) {
+  this.name = options.name;
+  this.key = options.key;
   this.position = 0;
 };
 
@@ -86,6 +100,10 @@ Player.prototype.move = function() {
   this.position += 1;
   this.$track.children().eq(this.position).addClass("active")
 };
+
+Player.prototype.activateFirstTrackPiece = function() {
+  View.activateFirstTrackPiece(player.$track);
+}
 
 function getGameInfo() {
   var numberOfPlayers = prompt("How many players?");
@@ -111,9 +129,23 @@ function createPlayers(num) {
 
 // ---
 
+var View = {
+  TRACK_PIECE_CLASS = ".track-piece"
+}
+
+View.activateFirstTrackPiece = function($track) {
+  $track.find('.track-piece:first-child').addClass("active")
+}
+
 var CreateElement = {}
 
-CreateElement.createOuter
+CreateElement.playerTrack = function(playerName) {
+  return"<tr id='" + playerName + "-track'></tr>"
+}
+
+CreateElement.trackPieces = function(num) {
+  return range(0,num).map(function(){return "<td class='track-piece'></td>"}).join("");
+}
 
 // ---
 
@@ -145,7 +177,7 @@ BlockingDataCollection.getPlayerNamesAndKeys = function() {
     player.push(this.keyCodeForPlayer(player[0]));
     players.push(player);
   }
-  console.log(players);
+  // console.log(players);
   return players;
 }
 
@@ -154,4 +186,11 @@ BlockingDataCollection.playerCount = function() {
 }
 // ---
 
+function range(start, end) {
+  var range = [];
+  for (i = start; i < end; i++) {
+    range.push(i);
+  }
+  return range;
+}
 
