@@ -1,13 +1,13 @@
 $(document).ready(function(){
-  // var options = {players: BlockingDataCollection.getPlayerNamesAndKeys()}
+  var options = {trackLength: BlockingDataCollection.getTrackLength(), players: BlockingDataCollection.getPlayerNamesAndKeys()}
   // options stub:
-  var options = {players: [["Sam", 83],["Paul", 80]]}
+  // var options = {players: [["Sam", 83],["Paul", 80]]}
   Game.start(options);
 });
 
+// --- Game model
 function Game(options) {
   // invariants
-  // this.players = getGameInfo(); // disentangle by modularizing as per driver code above /
   this.players = this.buildPlayers(options.players) // player construction method here somewhere... how do we add a default here?
   this.container = $(".racer-table");
   this.trackLength = options.trackLength || 20;
@@ -15,9 +15,6 @@ function Game(options) {
   // gamestate
   this.finished = false;
   this.winner = null;
-
-  // this.drawBoard();
-  // this.handleKeyUp();
 }
 
 Game.start = function(options) {
@@ -37,25 +34,11 @@ Game.prototype.buildPlayers = function(rawPlayers) {
 
 Game.prototype.drawBoard = function() {
   var game = this;
-  // $.each(this.players, function(index, player) {
   this.players.forEach(function(player, index) {
-    game.container.append(CreateElement.playerTrack(player.name)); // disentangle this into createElement namespace
-
-    // var remainingTrackPiecesToDraw = this.trackLength;
-
-    // var rowsHTML = ''
-    // while (remainingTrackPiecesToDraw--) rowsHTML += "<td></td>"
-
-    var trackPieces = CreateElement.trackPieces(this.trackLength)
-
+    game.container.append(View.createPlayerTrack(player.name));
     player.$track = $("#" + player.name + "-track");
-    player.$track.append(trackPieces);
-    // for (i = 0; i < game.trackLength; i++) {
-    //   player.$track.append("<td></td>");
-    // }
-    player.activateFirstTrackPiece();
-    // player.$track.children().first().addClass("active");
-    // player.$track.find('.cell:first-child').addClass("active"); // game logic shouldn't know/care about the exact structure of the DOM
+    var trackPieces = View.createTrackPieces(game.trackLength);
+    player.buildTrack(trackPieces);
   });
 }
 
@@ -87,12 +70,15 @@ Game.prototype.finishEvent = function(winningPlayer) {
   this.finished = true;
   this.winner = winningPlayer;
   // TODO: send winning player info to view
+  // View.displayWinningPlayerMessage(this.winner);
 }
 
+// --- Player model
 function Player(options) {
   this.name = options.name;
   this.key = options.key;
   this.position = 0;
+  this.$track = null;
 };
 
 Player.prototype.move = function() {
@@ -101,54 +87,32 @@ Player.prototype.move = function() {
   this.$track.children().eq(this.position).addClass("active")
 };
 
-Player.prototype.activateFirstTrackPiece = function() {
-  View.activateFirstTrackPiece(player.$track);
+Player.prototype.buildTrack = function(trackPieces) {
+  this.$track.append(trackPieces)
+  View.activateFirstTrackPiece(this.$track);
 }
 
-function getGameInfo() {
-  var numberOfPlayers = prompt("How many players?");
-  var players = createPlayers(numberOfPlayers);
-  return players;
-};
-
-function createPlayers(num) {
-  var players = [];
-  for ( i=0; i < num; i++ ) {
-    var name = BlockingDataCollection.nameForNumericallyIndexedPlayer(i+1);
-    var key = prompt( name + ", please choose your key.").charCodeAt(0) - 32;
-    players[i] = new Player(i+1, name, key);
-  }
-  return players;
-};
-
-// var playerNamesAndKeys = BlockingDataCollection.getPlayerNamesAndKeys()
-
-// playerNamesAndKeys
-// [[ 'myles', 'm' ], ['sam', 's' ] ]
-
-
-// ---
-
+// --- View / DOM manipulation
 var View = {
-  TRACK_PIECE_CLASS = ".track-piece"
+  TRACK_PIECE_CLASS: ".track-piece",
+  ACTIVE_TRACK_PIECE_CLASS: "active"
 }
 
 View.activateFirstTrackPiece = function($track) {
-  $track.find('.track-piece:first-child').addClass("active")
+  $track.find(this.TRACK_PIECE_CLASS + ':first-child').addClass(this.ACTIVE_TRACK_PIECE_CLASS)
 }
 
-var CreateElement = {}
-
-CreateElement.playerTrack = function(playerName) {
+View.createPlayerTrack = function(playerName) {
   return"<tr id='" + playerName + "-track'></tr>"
 }
 
-CreateElement.trackPieces = function(num) {
+View.createTrackPieces = function(num) {
   return range(0,num).map(function(){return "<td class='track-piece'></td>"}).join("");
 }
 
-// ---
+View.
 
+// --- Blocking input collection
 var BlockingDataCollection = {}
 
 BlockingDataCollection.nameForPlayer = function(num) {
@@ -170,22 +134,25 @@ BlockingDataCollection.keyCodeForPlayer = function(name) {
 
 BlockingDataCollection.getPlayerNamesAndKeys = function() {
   var players = [];
-  var count = parseInt(this.playerCount());
+  var count = this.playerCount();
   for (i = 1; i <= count; i++) {
     var player = [];
     player.push(this.nameForPlayer(i));
     player.push(this.keyCodeForPlayer(player[0]));
     players.push(player);
   }
-  // console.log(players);
   return players;
 }
 
 BlockingDataCollection.playerCount = function() {
-  return prompt("How many players?");
+  return parseInt(prompt("How many players?"));
 }
-// ---
 
+BlockingDataCollection.getTrackLength = function() {
+  return parseInt(prompt("How long a track do you want to race on?"));
+}
+
+// ---
 function range(start, end) {
   var range = [];
   for (i = start; i < end; i++) {
