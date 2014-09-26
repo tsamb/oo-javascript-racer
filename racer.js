@@ -70,7 +70,7 @@ Game.prototype.finishEvent = function(winningPlayer) {
   this.finished = true;
   this.winner = winningPlayer;
   // TODO: send winning player info to view
-  // View.displayWinningPlayerMessage(this.winner);
+  View.displayWinningPlayerMessage(this.winner);
 }
 
 // --- Player model
@@ -110,7 +110,9 @@ View.createTrackPieces = function(num) {
   return range(0,num).map(function(){return "<td class='track-piece'></td>"}).join("");
 }
 
-View.
+View.displayWinningPlayerMessage = function(winningPlayer) {
+  alert("Congratulations, " + winningPlayer.name + "! You win!")
+}
 
 // --- Blocking input collection
 var BlockingDataCollection = {}
