@@ -1,15 +1,18 @@
 $(document).ready(function(){
-  var options = {trackLength: BlockingDataCollection.getTrackLength(), players: BlockingDataCollection.getPlayerNamesAndKeys()}
+  var options = {
+                  trackLength: BlockingDataCollection.getTrackLength(),
+                  players: BlockingDataCollection.getPlayerNamesAndKeys()
+                }
   // options stub:
-  // var options = {players: [["Sam", 83],["Paul", 80]]}
+  // var options = {players: [["Sam", "s"],["Paul", "p"]]}
   Game.start(options);
 });
 
 // --- Game model
 function Game(options) {
   // invariants
-  this.players = this.buildPlayers(options.players) // player construction method here somewhere... how do we add a default here?
-  this.container = $(".racer-table");
+  this.players = this.buildPlayers(options.players);
+  this.$container = $(View.CONTAINER_ELEMENT);
   this.trackLength = options.trackLength || 20;
 
   // gamestate
@@ -35,7 +38,7 @@ Game.prototype.buildPlayers = function(rawPlayers) {
 Game.prototype.drawBoard = function() {
   var game = this;
   this.players.forEach(function(player, index) {
-    game.container.append(View.createPlayerTrack(player.name));
+    game.$container.append(View.createPlayerTrack(player.name));
     player.$track = $("#" + player.name + "-track");
     var trackPieces = View.createTrackPieces(game.trackLength);
     player.buildTrack(trackPieces);
@@ -95,7 +98,8 @@ Player.prototype.buildTrack = function(trackPieces) {
 // --- View / DOM manipulation
 var View = {
   TRACK_PIECE_CLASS: ".track-piece",
-  ACTIVE_TRACK_PIECE_CLASS: "active"
+  ACTIVE_TRACK_PIECE_CLASS: "active",
+  CONTAINER_ELEMENT: ".racer-table"
 }
 
 View.activateFirstTrackPiece = function($track) {
