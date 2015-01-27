@@ -1,6 +1,6 @@
 $(document).ready(function(){
   var options = {
-                  trackLength: BlockingDataCollection.getTrackLength(),
+                  trackLength: BlockingDataCollection.getTrackLength(), // get options that does this stuff
                   players: BlockingDataCollection.getPlayerNamesAndKeys()
                 }
   // options stub:
@@ -11,7 +11,7 @@ $(document).ready(function(){
 // --- Game model
 function Game(options) {
   // invariants
-  this.players = this.buildPlayers(options.players);
+  this.players = options.players ? this.buildPlayers(options.players) : [["Sam", "s"],["Paul", "p"]]
   this.$container = $(View.CONTAINER_ELEMENT);
   this.trackLength = options.trackLength || 20;
 
@@ -31,29 +31,29 @@ Game.prototype.buildPlayers = function(rawPlayers) {
   rawPlayers.forEach(function(playerData) {
     players.push(new Player({ name: playerData[0], key: playerData[1] }));
   });
-  console.log(players);
   return players;
 }
 
 Game.prototype.drawBoard = function() {
   var game = this;
   this.players.forEach(function(player, index) {
-    game.$container.append(View.createPlayerTrack(player.name));
+    game.$container.append(View.createPlayerTrack(player.name)); // container is a View concern, pass the view the players array
     player.$track = $("#" + player.name + "-track");
     var trackPieces = View.createTrackPieces(game.trackLength);
     player.buildTrack(trackPieces);
   });
 }
 
-Game.prototype.handleEvents = function() {
-  this.focusableElement.on('keyup', extractLetterPressed(movePlayerFromKey))
-}
+// Game.prototype.handleEvents = function() {
+//   this.focusableElement.on('keyup', extractLetterPressed(movePlayerFromKey))
+// }
 
 Game.prototype.handleKeyUp = function() {
   game = this;
   $.each(this.players, function(index, player) {
+  // this.players.foreach(function(player) {
     $(document).keyup(function(event) {
-      if (event.keyCode == player.key) {
+      if (event.keyCode == player.key) { // change to KeyCoder.keyToKeyCode(player.key)
         player.move();
         game.checkForFinish();
       }
@@ -121,6 +121,10 @@ View.displayWinningPlayerMessage = function(winningPlayer) {
 // --- Blocking input collection
 var BlockingDataCollection = {}
 
+BlockingDataCollection.getOptions = function() {
+  //
+}
+
 BlockingDataCollection.nameForPlayer = function(num) {
   return prompt("Player " + num + ", what is your name?");
 }
@@ -138,6 +142,7 @@ BlockingDataCollection.keyCodeForPlayer = function(name) {
   return this.keyToKeyCode(playerKey);
 }
 
+
 BlockingDataCollection.getPlayerNamesAndKeys = function() {
   var players = [];
   var count = this.playerCount();
@@ -150,6 +155,7 @@ BlockingDataCollection.getPlayerNamesAndKeys = function() {
   return players;
 }
 
+// rename getPlayerCount
 BlockingDataCollection.playerCount = function() {
   return parseInt(prompt("How many players?"));
 }
@@ -157,6 +163,15 @@ BlockingDataCollection.playerCount = function() {
 BlockingDataCollection.getTrackLength = function() {
   return parseInt(prompt("How long a track do you want to race on?"));
 }
+
+// ---
+
+KeyCoder = {}
+
+KeyCoder.keyToKeyCode = function(key) {
+  return key.charCodeAt(0) - 32
+}
+
 
 // ---
 function range(start, end) {
